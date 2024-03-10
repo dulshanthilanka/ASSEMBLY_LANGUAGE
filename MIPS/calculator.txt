@@ -1,0 +1,139 @@
+section .data
+    prompt1 db "Enter the first number: ", 0
+    prompt2 db "Enter the second number: ", 0
+    prompt3 db "Enter the operation (+, -, *, /): ", 0
+    result_msg db "Result: ", 0
+    error_msg db "Invalid operation. Please enter +, -, *, or /.", 0
+
+section .bss
+    num1 resd 1
+    num2 resd 1
+    operation resb 1
+    result resd 1
+
+section .text
+    global _start
+
+_start:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt1
+    mov edx, 27
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, num1
+    mov edx, 4
+    int 0x80
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt2
+    mov edx, 28
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, num2
+    mov edx, 4
+    int 0x80
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt3
+    mov edx, 36
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, operation
+    mov edx, 2
+    int 0x80
+
+    mov eax, [num1]
+    mov ebx, [num2]
+    call atoi
+
+    mov al, byte [operation]
+    cmp al, '+'
+    je add_numbers
+    cmp al, '-'
+    je subtract_numbers
+    cmp al, '*'
+    je multiply_numbers
+    cmp al, '/'
+    je divide_numbers
+    jmp invalid_operation
+
+add_numbers:
+    add eax, ebx
+    jmp print_result
+
+subtract_numbers:
+    sub eax, ebx
+    jmp print_result
+
+multiply_numbers:
+    imul eax, ebx
+    jmp print_result
+
+divide_numbers:
+    idiv ebx
+    jmp print_result
+
+invalid_operation:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, error_msg
+    mov edx, 54
+    int 0x80
+    jmp exit_program
+
+print_result:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, result_msg
+    mov edx, 8
+    int 0x80
+
+    call itoa
+    mov eax, ebx  ; Resulting string address
+    mov edx, eax  ; Length of the string
+    mov eax, 4
+    int 0x80
+
+exit_program:
+    mov eax, 1
+    mov ebx, 0
+    int 0x80
+
+atoi:
+    pushad
+    xor eax, eax
+    xor ecx, ecx
+
+atoi_loop:
+    mov cl, byte [eax]
+    test cl, cl
+    jz atoi_done
+
+    sub cl, '0'
+    imul eax, eax, 10
+    add eax, ecx
+    inc eax
+    jmp atoi_loop
+
+atoi_done:
+    popad
+    ret
+
+itoa:
+    pushad
+    mov eax, edi  ; The integer to convert
+    mov ebx, edx  ; The length of the destination buffer
+    mov edi, ebx  ; Destination buffer address
+    add edi, ebx  ; Set edi to the end of the buffer
+
+itoa_loop:
+    dec edi

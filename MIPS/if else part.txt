@@ -1,0 +1,89 @@
+section .data
+    prompt1 db "Enter the first number: ", 0
+    prompt2 db "Enter the second number: ", 0
+    num1_msg db "Number one is big", 0
+    num2_msg db "Number two is big", 0
+
+section .bss
+    num1 resd 1
+    num2 resd 1
+
+section .text
+    global _start
+
+_start:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt1
+    mov edx, 27
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, num1
+    mov edx, 4
+    int 0x80
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt2
+    mov edx, 28
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, num2
+    mov edx, 4
+    int 0x80
+
+    mov eax, [num1]
+    mov ebx, [num2]
+    call atoi
+
+    cmp eax, ebx
+    je both_numbers_equal
+    jg num1_is_big
+    jl num2_is_big
+
+both_numbers_equal:
+    jmp exit_program
+
+num1_is_big:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, num1_msg
+    mov edx, 20
+    int 0x80
+    jmp exit_program
+
+num2_is_big:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, num2_msg
+    mov edx, 20
+    int 0x80
+
+exit_program:
+    mov eax, 1
+    mov ebx, 0
+    int 0x80
+
+atoi:
+    pushad
+    xor eax, eax
+    xor ecx, ecx
+
+atoi_loop:
+    mov cl, byte [eax]
+    test cl, cl
+    jz atoi_done
+
+    sub cl, '0' ; Convert ASCII to integer
+    imul eax, eax, 10
+    add eax, ecx
+    inc eax
+    jmp atoi_loop
+
+atoi_done:
+    popad
+    ret

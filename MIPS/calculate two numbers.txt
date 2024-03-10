@@ -1,0 +1,74 @@
+section .data
+    prompt1 db "Enter the first number: ", 0
+    prompt2 db "Enter the second number: ", 0
+    result_msg db "Result: ", 0
+
+section .bss
+    num1 resd 1
+    num2 resd 1
+    result resd 1
+
+section .text
+    global _start
+
+_start:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt1
+    mov edx, 23
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, num1
+    mov edx, 4
+    int 0x80
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, prompt2
+    mov edx, 24
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, num2
+    mov edx, 4
+    int 0x80
+
+    mov eax, [num1]
+    mov ebx, [num2]
+    call atoi
+
+    add eax, ebx
+    mov [result], eax
+
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, result_msg
+    mov edx, 8
+    int 0x80
+
+    mov eax, 1
+    mov ebx, 0
+    int 0x80
+
+atoi:
+    pushad
+    xor eax, eax
+    xor ecx, ecx
+
+atoi_loop:
+    mov cl, byte [eax]
+    test cl, cl
+    jz atoi_done
+
+    sub cl, '0'
+    imul eax, eax, 10
+    add eax, ecx
+    inc eax
+    jmp atoi_loop
+
+atoi_done:
+    popad
+    ret
